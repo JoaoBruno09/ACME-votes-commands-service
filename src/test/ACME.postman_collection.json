@@ -1,0 +1,1659 @@
+{
+	"info": {
+		"_postman_id": "a5a74d26-9f88-4d07-829f-875af78f5330",
+		"name": "ACME",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4160446"
+	},
+	"item": [
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Authtenticates\", function(){\r",
+									"\r",
+									"    pm.response.to.have.status(200);\r",
+									"\r",
+									"    const token = postman.getResponseHeader(\"Authorization\");\r",
+									"    pm.environment.set(\"token\", token);  \r",
+									"\r",
+									"    const userId = pm.response.json().userId;\r",
+									"    pm.environment.set(\"userId\", userId);\r",
+									"\r",
+									"    const username = pm.response.json().username;\r",
+									"    pm.environment.set(\"username\", username);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.environment.set(\"username\", \"admin1@mail.com\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"admin1@mail.com\",\r\n    \"password\":\"AdminPW1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/auth/public/login",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"auth",
+								"public",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"User exists with id and respective username\", function () {",
+									"    pm.response.to.have.status(200);",
+									"",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.username).to.eql( pm.environment.get(\"username\"));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/admin/user/{{userId}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"admin",
+								"user",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by username",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"User exists with username\", function () {",
+									"",
+									"    pm.response.to.have.status(200);",
+									"",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.username).to.eql( pm.environment.get(\"username\"));",
+									"",
+									"    pm.expect(responseJson.nif).to.eql(\"355489123\");",
+									"",
+									"    pm.expect(responseJson.authorities[0].authority).to.eql(\"Admin\");",
+									"",
+									"    // ...",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/admin/user/username/{{username}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"admin",
+								"user",
+								"username",
+								"{{username}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Get catalog",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Products Found\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"const jsonData = pm.response.json();",
+									"",
+									"pm.environment.set(\"catalogLength\", jsonData.length);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/products",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create a product",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var sku = randomString(12, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');",
+									"var designation = pm.variables.replaceIn('{{$randomLoremWords}}')",
+									"var description = pm.variables.replaceIn('{{$randomLoremSentence}}')",
+									"",
+									"pm.environment.set(\"sku\", sku);",
+									"pm.environment.set(\"designation\", designation);",
+									"pm.environment.set(\"description\", description);",
+									"",
+									"function randomString(length, chars) {",
+									"    var result = '';",
+									"    for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];",
+									"    return result;",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Product created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"A new product was returned\", function () {",
+									"",
+									"    const product = pm.response.json();",
+									"",
+									"    const sku = pm.environment.get(\"sku\");",
+									"    const designation = pm.environment.get(\"designation\");",
+									"",
+									"    pm.expect(product.sku).to.equals(sku);",
+									"    pm.expect(product.designation).to.equals(designation);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sku\": \"{{sku}}\",\n    \"designation\": \"{{designation}}\",\n    \"description\": \"{{description}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/products",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Fail to create a duplicated product",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(409);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sku\": \"{{sku}}\",\n    \"designation\": \"{{designation}}\",\n    \"description\": \"{{description}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/products",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get updated catalog",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Products Found\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"const jsonData = pm.response.json();",
+									"",
+									"const previousCatalogLength = pm.environment.get(\"catalogLength\");",
+									"const expectedCatalogLength = previousCatalogLength + 1",
+									"",
+									"const lastProduct = jsonData[expectedCatalogLength-1];",
+									"",
+									"pm.test(\"A new product was included in catalog\", function () {",
+									"    pm.expect(jsonData.length).to.equals(expectedCatalogLength);",
+									"});",
+									"",
+									"pm.test(\"The new product has the correct data\", function () {",
+									"    const sku = pm.environment.get(\"sku\");",
+									"    const designation = pm.environment.get(\"designation\");",
+									"",
+									"    pm.expect(lastProduct.sku).to.equals(sku);",
+									"    pm.expect(lastProduct.designation).to.equals(designation);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/products",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get product by sku",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Product Found\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"const jsonData = pm.response.json();",
+									"",
+									"const sku = pm.environment.get(\"sku\");",
+									"const designation = pm.environment.get(\"designation\");",
+									"",
+									"pm.test(\"Checking Product sku\", function () {    ",
+									"    pm.expect(jsonData.sku).to.eql(sku);",
+									"});",
+									"pm.test(\"Checking Product designation\", function () {",
+									"    pm.expect(jsonData.designation).to.eql(designation);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/products/{{sku}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"products",
+								"{{sku}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get product(s) by designation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Product Found\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"const jsonData = pm.response.json();",
+									"const product = jsonData[0];",
+									"",
+									"const sku = pm.environment.get(\"sku\");",
+									"const designation = pm.environment.get(\"designation\");",
+									"const description = pm.environment.get(\"description\");",
+									"",
+									"pm.test(\"Checking Product sku\", function () {    ",
+									"    pm.expect(product.sku).to.eql(sku);",
+									"});",
+									"pm.test(\"Checking Product designation\", function () {",
+									"    pm.expect(product.designation).to.eql(designation);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/products/designation/{{designation}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"products",
+								"designation",
+								"{{designation}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Patch designation and descritpion of a product",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"",
+									"var designationPatched = pm.variables.replaceIn('{{$randomLoremWords}}')",
+									"var descriptionPatched = pm.variables.replaceIn('{{$randomLoremSentence}}')",
+									"",
+									"pm.environment.set(\"designationPatched\", designationPatched);",
+									"pm.environment.set(\"descriptionPatched\", descriptionPatched);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Product patched\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"The product was patched\", function () {",
+									"",
+									"    const product = pm.response.json();",
+									"",
+									"    const sku = pm.environment.get(\"sku\");",
+									"    const designationPatched = pm.environment.get(\"designationPatched\");",
+									"",
+									"    pm.expect(product.sku).to.equals(sku);",
+									"    pm.expect(product.designation).to.equals(designationPatched);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"designation\": \"{{designationPatched}}\",\n    \"description\": \"{{descriptionPatched}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/products/{{sku}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"products",
+								"{{sku}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check if patched",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Product found\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Product has been correctly patched\", function () {",
+									"",
+									"    const product = pm.response.json();",
+									"",
+									"    const sku = pm.environment.get(\"sku\");",
+									"    const designationPatched = pm.environment.get(\"designationPatched\");",
+									"",
+									"    pm.expect(product.sku).to.equals(sku);",
+									"    pm.expect(product.designation).to.equals(designationPatched);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/products/{{sku}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"products",
+								"{{sku}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create a product to delete",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var sku2Delete = randomString(12, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');",
+									"var designation2Delete = pm.variables.replaceIn('{{$randomLoremWords}}')",
+									"var description2Delete = pm.variables.replaceIn('{{$randomLoremSentence}}')",
+									"",
+									"pm.environment.set(\"sku2Delete\", sku2Delete);",
+									"pm.environment.set(\"designation2Delete\", designation2Delete);",
+									"pm.environment.set(\"description2Delete\", description2Delete);",
+									"",
+									"console.log(\"sku2Delete: \" + sku2Delete );",
+									"console.log(\"designation2Delete: \" + designation2Delete );",
+									"console.log(\"description2Delete: \" + description2Delete );",
+									"",
+									"function randomString(length, chars) {",
+									"    var result = '';",
+									"    for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];",
+									"    return result;",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Product created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"A new product was returned\", function () {",
+									"",
+									"    const product = pm.response.json();",
+									"",
+									"    const sku2Delete = pm.environment.get(\"sku2Delete\");",
+									"    const designation2Delete = pm.environment.get(\"designation2Delete\");",
+									"",
+									"    pm.expect(product.sku).to.equals(sku2Delete);",
+									"    pm.expect(product.designation).to.equals(designation2Delete);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sku\": \"{{sku2Delete}}\",\n    \"designation\": \"{{designation2Delete}}\",\n    \"description\": \"{{description2Delete}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/products",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a Product by sku",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Product was deleted\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/products/{{sku2Delete}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"products",
+								"{{sku2Delete}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check if deleted",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Product not found\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/products/{{sku2Delete}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"products",
+								"{{sku2Delete}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reviews",
+			"item": [
+				{
+					"name": "List Review by Product's SKU",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Products Found\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"There are not reviews for this product\", function () {",
+									"",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.length).to.equals(0);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/products/{{sku}}/reviews/Dasda",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"products",
+								"{{sku}}",
+								"reviews",
+								"Dasda"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Review by user's ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Reviews endpoint return OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/reviews/{{userId}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create a Review given the Product's SKU",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"",
+									"var reviewText = pm.variables.replaceIn('{{$randomLoremSentence}}')",
+									"",
+									"pm.environment.set(\"reviewText\", reviewText);",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Review created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"const review = pm.response.json();",
+									"pm.environment.set(\"idReview\", review.idReview);",
+									"",
+									"pm.test(\"A new review was returned\", function () {",
+									"",
+									"    const reviewText = pm.environment.get(\"reviewText\");",
+									"",
+									"    pm.expect(review.reviewText).to.equals(reviewText);",
+									"    pm.expect(review.rating).to.equals(5.0);",
+									"    pm.expect(review.vote).to.equals(0);",
+									"    pm.expect(review.approvalStatus).to.equals(\"pending\");",
+									"",
+									"    var publishingDate = new Date( review.publishingDate );",
+									"    var currentDate = new Date();",
+									"    pm.expect( publishingDate.toLocaleDateString() ).to.equals(currentDate.toLocaleDateString());",
+									"});",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userID\": \"{{userId}}\",\n    \"reviewText\": \"{{reviewText}}\",\n    \"rating\": 5.0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/products/{{sku}}/reviews",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"products",
+								"{{sku}}",
+								"reviews"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Approve review",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Review was approved\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Status of the review is 'approved'\", function () {",
+									"",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.approvalStatus).to.equals(\"approved\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "approved"
+						},
+						"url": {
+							"raw": "{{HOST}}/reviews/acceptreject/{{idReview}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"acceptreject",
+								"{{idReview}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upvote for approved review",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Upvote added\", function () {",
+									"    pm.response.to.have.status(\"Created\");",
+									"});",
+									"",
+									"pm.test(\"Returns true\", function () {",
+									"    pm.response.to.have.body(\"true\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userID\": {{userId}},\n    \"vote\": \"upVote\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/reviews/{{idReview}}/vote",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"{{idReview}}",
+								"vote"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Duplicate upvote for review is not possible",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Upvote not added\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userID\": {{userId}},\n    \"vote\": \"upVote\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/reviews/{{idReview}}/vote",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"{{idReview}}",
+								"vote"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Downvote for approved review",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Upvote added\", function () {",
+									"    pm.response.to.have.status(\"Created\");",
+									"});",
+									"",
+									"pm.test(\"Returns true\", function () {",
+									"    pm.response.to.have.body(\"true\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userID\": {{userId}},\n    \"vote\": \"downVote\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/reviews/{{idReview}}/vote",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"{{idReview}}",
+								"vote"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Duplicate downvote for review is not possible Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Upvote not added\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userID\": {{userId}},\n    \"vote\": \"downVote\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/reviews/{{idReview}}/vote",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"{{idReview}}",
+								"vote"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Review with vote cannot be deleted",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"It is not possible to delete a review with votes\", function () {",
+									"    pm.response.to.have.status(422);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/reviews/{{idReview}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"{{idReview}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List pending reviews",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Products Found\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"All returned reviews are pending\", function () {",
+									"",
+									"    const reviews = pm.response.json();",
+									"",
+									"    reviews.forEach(function(review) {",
+									"        pm.expect(review.approvalStatus).to.equals(\"pending\");",
+									"    })",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/reviews/pending",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"pending"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Pending review",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Review status updated\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Status of the review is 'pending'\", function () {",
+									"",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.approvalStatus).to.equals(\"pending\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "pending"
+						},
+						"url": {
+							"raw": "{{HOST}}/reviews/acceptreject/{{idReview}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"acceptreject",
+								"{{idReview}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upvote is invalid for pending review",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Upvote is invalid for pending review\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userID\": {{userId}},\n    \"vote\": \"upVote\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/reviews/{{idReview}}/vote",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"{{idReview}}",
+								"vote"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Downvote is invalid for pending review",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Downvote is invalid for pending review\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userID\": {{userId}},\n    \"vote\": \"upVote\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/reviews/{{idReview}}/vote",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"{{idReview}}",
+								"vote"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reject review",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Review status updated\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Status of the review is 'rejected'\", function () {",
+									"",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.approvalStatus).to.equals(\"rejected\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "rejected"
+						},
+						"url": {
+							"raw": "{{HOST}}/reviews/acceptreject/{{idReview}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"acceptreject",
+								"{{idReview}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upvote is invalid for rejected review",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Upvote is invalid for rejected review\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userID\": {{userId}},\n    \"vote\": \"upVote\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/reviews/{{idReview}}/vote",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"{{idReview}}",
+								"vote"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Downvote is invalid for rejected review",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Downvote is invalid for rejected review\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userID\": {{userId}},\n    \"vote\": \"upVote\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/reviews/{{idReview}}/vote",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"{{idReview}}",
+								"vote"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Invalid status value",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Review status is not updated\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "pendingsadsda"
+						},
+						"url": {
+							"raw": "{{HOST}}/reviews/acceptreject/{{idReview}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"acceptreject",
+								"{{idReview}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create a Review to delete",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"",
+									"var reviewText = pm.variables.replaceIn('{{$randomLoremSentence}}')",
+									"",
+									"pm.environment.set(\"review2DeleteText\", reviewText);",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Review created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"const review = pm.response.json();",
+									"pm.environment.set(\"idReview2Delete\", review.idReview);",
+									"",
+									"pm.test(\"A new review was returned\", function () {",
+									"",
+									"    const reviewText = pm.environment.get(\"review2DeleteText\");",
+									"",
+									"    pm.expect(review.reviewText).to.equals(reviewText);",
+									"    pm.expect(review.rating).to.equals(0.0);",
+									"    pm.expect(review.vote).to.equals(0);",
+									"    pm.expect(review.approvalStatus).to.equals(\"pending\");",
+									"",
+									"    var publishingDate = new Date( review.publishingDate );",
+									"    var currentDate = new Date();",
+									"    pm.expect( publishingDate.toLocaleDateString() ).to.equals(currentDate.toLocaleDateString());",
+									"});",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userID\": \"{{userId}}\",\n    \"reviewText\": \"{{review2DeleteText}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{HOST}}/products/{{sku}}/reviews",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"products",
+								"{{sku}}",
+								"reviews"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Review without vote can be deleted",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"It is possible to delete a review without votes\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Returns true\", function () {",
+									"    pm.response.to.have.body(\"true\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/reviews/{{idReview2Delete}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"{{idReview2Delete}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "It is not possible to delete a deleted review",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"It is not possible to delete a deleted review\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/reviews/{{idReview2Delete}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"reviews",
+								"{{idReview2Delete}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Aggregated Rating",
+			"item": [
+				{
+					"name": "Aggregated rating given productID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/aggregatedrating/{{sku}}",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"aggregatedrating",
+								"{{sku}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "HOST",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}

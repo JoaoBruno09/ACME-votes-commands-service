@@ -1,0 +1,63 @@
+@startuml
+'https://plantuml.com/use-case-diagram
+
+skinparam classAttributeIconSize 0
+hide circle
+hide methods
+
+class Product {
+- id
+- SKU
+- designation
+- description
+}
+
+class Review {
+- reviewID
+- approvalStatus
+- reviewText
+- vote
+- report
+- publishingDate
+}
+
+class Rating {
+- ratingID
+- rate
+}
+
+class AggregatedRating {
+- aggregatedRatingID
+- weightedAverageRate
+}
+
+class Image {
+- imageID
+- imageUrl
+}
+
+class User {
+- userID
+- name
+- userName
+- pw
+- nif
+- morada
+- email
+- role
+}
+
+Product "1" -left-- "*" Review : > has
+Product "1" -down-- "1" AggregatedRating : has
+
+Review "1" -down-- "1" Rating : has
+
+User "  1  " -right-- "*" Review : interacts
+User "1  " -down-- "*" Rating : gives
+
+AggregatedRating "1" -left-- "*" Rating : > aggregates
+
+User "1 " -right-- "*" Product :  consults
+
+Product "1" -right-- "*" Image: has
+@enduml
