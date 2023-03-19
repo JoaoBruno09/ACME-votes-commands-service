@@ -4,10 +4,12 @@ public class VoteReviewDTO {
 
     private Long userID;
     private String vote;
+    private Long voteID;
 
 
-    public VoteReviewDTO(Long userID, String vote) {
+    public VoteReviewDTO(Long userID, Long voteID, String vote) {
         this.userID = userID;
+        this.voteID = voteID;
         this.vote = vote;
     }
 
@@ -25,5 +27,13 @@ public class VoteReviewDTO {
 
     public void setVote(String vote) {
         this.vote = vote;
+    }
+
+    public Long getVoteID() {
+        return voteID;
+    }
+
+    public void setVoteID(Long voteID) {
+        this.voteID = voteID;
     }
 }
