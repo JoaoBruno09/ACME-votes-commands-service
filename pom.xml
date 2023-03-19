@@ -153,6 +153,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>votes-service-commands</finalName>
 	</build>
 
 </project>
