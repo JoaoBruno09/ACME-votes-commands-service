@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import com.isep.acme.model.UserView;
+import com.isep.acme.model.views.UserView;
 import com.isep.acme.services.UserService;
 
 @RestController

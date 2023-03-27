@@ -8,8 +8,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.isep.acme.model.User;
-import com.isep.acme.model.UserView;
-import com.isep.acme.model.UserViewMapper;
+import com.isep.acme.model.views.UserView;
+import com.isep.acme.model.mappers.UserViewMapper;
 import com.isep.acme.repositories.UserRepository;
 
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package com.isep.acme.model;
+package com.isep.acme.model.dtos;
 
 public class VoteReviewDTO {
 

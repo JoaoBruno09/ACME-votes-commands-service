@@ -1,7 +1,7 @@
 package com.isep.acme.controllers;
 
 
-import com.isep.acme.model.VoteReviewDTO;
+import com.isep.acme.model.dtos.VoteReviewDTO;
 import com.isep.acme.services.VoteService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
