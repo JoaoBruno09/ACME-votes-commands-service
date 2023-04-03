@@ -5,6 +5,7 @@ import com.isep.acme.model.dtos.VoteReviewDTO;
 import com.isep.acme.repositories.VoteRepository;
 import com.isep.acme.services.VoteService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,9 @@ public class VoteServiceImpl implements VoteService {
 
     @Autowired
     VoteRepository voteRepository;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public VoteReviewDTO createVote(Long idReview, VoteReviewDTO voteReviewDTO){
