@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  app:
+  votes_C:
     build: .
     ports:
       - "9006:8080"
