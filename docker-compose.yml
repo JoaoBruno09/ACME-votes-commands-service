@@ -4,7 +4,7 @@ services:
   app:
     build: .
     ports:
-      - "8086:8080"
+      - "9006:8080"
     networks:
       - acme
 networks:
