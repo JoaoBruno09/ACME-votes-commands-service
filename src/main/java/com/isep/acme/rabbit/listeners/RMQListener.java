@@ -51,7 +51,7 @@ public class RMQListener {
             Review review = getProductAndUserForReview(reviewDTO);
             System.out.println("Received Review Message " + review);
             reviewListener.listenedReview(review, action);
-        }else{
+        }else if (action.equals(Constants.VOTE_HEADER)){
             final VoteReviewDTO voteDTO = (VoteReviewDTO) messageConverter.fromMessage(message);
             Vote vote = VOTE_MAPPER.toVote(voteDTO);
             System.out.println("Received Vote Message " + vote);
