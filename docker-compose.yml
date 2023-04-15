@@ -9,7 +9,7 @@ services:
       RABBIT_PORT: ${RABBIT_PORT}
     build: .
     ports:
-      - "9006:8080"
+      - "9011-9012:8080"
     networks:
       - acme
 networks:

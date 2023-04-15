@@ -19,7 +19,7 @@ public class VoteController {
 
 @PutMapping
 @ResponseStatus(HttpStatus.CREATED)
-    public void createVote(@PathVariable(value = "idReview") final long idReview, @RequestBody VoteReviewDTO voteReviewDTO){
-        voteService.createVote(idReview,voteReviewDTO);
+    public boolean createVote(@PathVariable(value = "idReview") final String RID, @RequestBody VoteReviewDTO voteReviewDTO){
+        return voteService.createVote(RID,voteReviewDTO);
     }
 }

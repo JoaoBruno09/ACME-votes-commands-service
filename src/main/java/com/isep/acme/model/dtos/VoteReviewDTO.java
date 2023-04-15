@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 public class VoteReviewDTO {
-    private Long userID;
-    private String vote;
     private Long voteID;
+    private String VID;
+    private String vote;
+    private Long userID;
+    private String RID;
 }

@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Start Container') {
             steps {
-                bat 'docker compose up -d'
+                bat 'docker compose up -d --scale votes_c=2'
             }
         }
     }

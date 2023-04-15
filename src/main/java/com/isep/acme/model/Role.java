@@ -1,13 +1,13 @@
 package com.isep.acme.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
-
 import lombok.Value;
+import org.springframework.security.core.GrantedAuthority;
 
 @Value
 @AllArgsConstructor
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Role implements GrantedAuthority {
 
     public static final String Admin = "Admin";
