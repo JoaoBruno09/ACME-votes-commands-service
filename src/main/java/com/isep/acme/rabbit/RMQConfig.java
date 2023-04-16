@@ -20,8 +20,18 @@ public class RMQConfig {
 	public Queue queue() {return new AnonymousQueue();}
 
 	@Bean
+	public Queue queueRPC() {
+		return new AnonymousQueue();
+	}
+
+	@Bean
 	public FanoutExchange fanout() {
 		return new FanoutExchange(Constants.EXCHANGE);
+	}
+
+	@Bean
+	public DirectExchange directExchange() {
+		return new DirectExchange(Constants.DIRECT_EXCHANGE);
 	}
 
 	@Bean
@@ -29,6 +39,13 @@ public class RMQConfig {
 		return BindingBuilder.bind(queue).to(fanout);
 	}
 
+	@Bean
+	public Binding bindingDirect(DirectExchange exchange,
+								 Queue queue) {
+		return BindingBuilder.bind(queue)
+				.to(exchange)
+				.with("rpc_votes_queue");
+	}
 	@Bean
 	public Jackson2JsonMessageConverter messageConverter(){
 		ObjectMapper objectMapper = new ObjectMapper();
