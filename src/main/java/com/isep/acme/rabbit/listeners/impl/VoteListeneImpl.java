@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.transaction.Transactional;
 import java.util.Optional;
 
 @AllArgsConstructor
@@ -28,16 +29,25 @@ public class VoteListeneImpl implements VoteListener {
         if(vote != null){
             final Optional<Vote> voteToAction = voteRepository.findByVID(vote.getVID());
             if(voteToAction.isEmpty()){
-                Optional<Review> review = reviewRepository.findByRID(RID);
-                if (!review.isEmpty()){
-                    if (vote.getVote().equalsIgnoreCase("upVote") && review.get().addUpVote(vote)
-                            || vote.getVote().equalsIgnoreCase("downVote") && review.get().addDownVote(vote)) {
-                        voteRepository.save(vote);
-                        reviewRepository.save(review.get());
-                        System.out.println("Vote Added " + vote);
-                    }
+                Vote voteToAdd = voteRepository.save(vote);
+                if (addVoteToReview(RID, voteToAdd)) {
+                    System.out.println("Vote Added " + voteToAdd);
                 }
             }
         }
+    }
+
+    @Transactional
+    private boolean addVoteToReview(String RID, Vote vote) {
+        Optional<Review> review = this.reviewRepository.findByRID(RID);
+
+        if (review.isEmpty()) return false;
+
+        if (vote.getVote().equalsIgnoreCase("upVote") && review.get().addUpVote(vote)
+                || vote.getVote().equalsIgnoreCase("downVote") && review.get().addDownVote(vote)) {
+            reviewRepository.save(review.get());
+            return true;
+        }
+        return false;
     }
 }
