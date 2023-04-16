@@ -14,6 +14,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Optional;
 
 @Slf4j
@@ -60,6 +61,7 @@ public class VoteServiceImpl implements VoteService {
         };
     }
 
+    @Transactional
     public boolean addVoteToReview(VoteReviewDTO voteReviewDTO, Vote vote) {
 
         Optional<Review> review = this.reviewRepository.findByRID(voteReviewDTO.getRID());
