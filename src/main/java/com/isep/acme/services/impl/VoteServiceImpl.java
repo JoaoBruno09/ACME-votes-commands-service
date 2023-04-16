@@ -59,4 +59,20 @@ public class VoteServiceImpl implements VoteService {
             return message;
         };
     }
+
+    public boolean addVoteToReview(VoteReviewDTO voteReviewDTO, Vote vote) {
+
+        Optional<Review> review = this.reviewRepository.findByRID(voteReviewDTO.getRID());
+
+        if (review.isEmpty()) return false;
+
+        if (voteReviewDTO.getVote().equalsIgnoreCase("upVote") && review.get().addUpVote(vote)
+                || voteReviewDTO.getVote().equalsIgnoreCase("downVote") && review.get().addDownVote(vote)) {
+
+            reviewRepository.save(review.get());
+            return true;
+
+        }
+        return false;
+    }
 }
