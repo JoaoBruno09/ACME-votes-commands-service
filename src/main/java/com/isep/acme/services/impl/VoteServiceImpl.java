@@ -38,6 +38,7 @@ public class VoteServiceImpl implements VoteService {
                 if (voteReviewDTO.getVote().equalsIgnoreCase("upVote") && review.get().addUpVote(vote)
                         || voteReviewDTO.getVote().equalsIgnoreCase("downVote") && review.get().addDownVote(vote)) {
                     voteReviewDTO = VOTE_MAPPER.toVoteReviewDTO(voteRepository.save(vote));
+                    voteReviewDTO.setRID(review.get().getRID());
                     if(voteReviewDTO != null){
                         reviewRepository.save(review.get());
                         rabbitTemplate.convertAndSend(Constants.EXCHANGE, "", voteReviewDTO, createMessageProcessor(Constants.VOTE_HEADER));
