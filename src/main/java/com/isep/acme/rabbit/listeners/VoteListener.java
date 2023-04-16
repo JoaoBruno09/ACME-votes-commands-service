@@ -1,8 +1,8 @@
 package com.isep.acme.rabbit.listeners;
 
-import com.isep.acme.model.Vote;
+import com.isep.acme.model.dtos.VoteReviewDTO;
 
 public interface VoteListener {
 
-    void listenedVote(String RID, Vote vote);
+    void listenedVote(VoteReviewDTO voteReviewDTO);
 }
